@@ -1,23 +1,40 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BatteryCharging,
+  Bluetooth,
+  Info,
+  LayoutGrid,
+  MapPin,
+  Settings,
+  Signal,
+  Smartphone,
+  Sun,
+  Volume2,
+  Wifi,
+  type LucideIcon,
+} from "lucide-react";
 
-type Destino = { label: string; action: string };
+type Destino = { label: string; action: string; Icon: LucideIcon };
 
 const PRINCIPAL: Destino = {
   label: "Abrir Configurações",
   action: "android.settings.SETTINGS",
+  Icon: Settings,
 };
 
 const ATALHOS: Destino[] = [
-  { label: "Wi-Fi", action: "android.settings.WIFI_SETTINGS" },
-  { label: "Bluetooth", action: "android.settings.BLUETOOTH_SETTINGS" },
-  { label: "Localização", action: "android.settings.LOCATION_SOURCE_SETTINGS" },
-  { label: "Dados móveis", action: "android.settings.DATA_ROAMING_SETTINGS" },
-  { label: "Ecrã", action: "android.settings.DISPLAY_SETTINGS" },
-  { label: "Som", action: "android.settings.SOUND_SETTINGS" },
-  { label: "Bateria", action: "android.settings.BATTERY_SAVER_SETTINGS" },
-  { label: "Aplicações", action: "android.settings.APPLICATION_SETTINGS" },
+  { label: "Wi-Fi", action: "android.settings.WIFI_SETTINGS", Icon: Wifi },
+  { label: "Bluetooth", action: "android.settings.BLUETOOTH_SETTINGS", Icon: Bluetooth },
+  { label: "Localização", action: "android.settings.LOCATION_SOURCE_SETTINGS", Icon: MapPin },
+  { label: "Dados móveis", action: "android.settings.DATA_ROAMING_SETTINGS", Icon: Signal },
+  { label: "Ecrã", action: "android.settings.DISPLAY_SETTINGS", Icon: Sun },
+  { label: "Som", action: "android.settings.SOUND_SETTINGS", Icon: Volume2 },
+  { label: "Bateria", action: "android.settings.BATTERY_SAVER_SETTINGS", Icon: BatteryCharging },
+  { label: "Aplicações", action: "android.settings.APPLICATION_SETTINGS", Icon: LayoutGrid },
 ];
 
 function montarIntent(action: string, fallbackUrl: string) {
@@ -64,51 +81,84 @@ export default function Home() {
   };
 
   return (
-    <main>
-      <h1>⚙️ Configurações</h1>
-      <p className="sub">Toca no botão para abrir as definições do teu telefone.</p>
+    <main className="shell">
+      <header className="header">
+        <div className="badge">
+          <Settings size={22} strokeWidth={2.2} />
+        </div>
+        <div>
+          <h1>Configurações</h1>
+          <p className="sub">Acesso rápido às definições do teu Android</p>
+        </div>
+      </header>
 
       {isAndroid === false && (
-        <div className="card warn">
-          Este atalho só funciona em telefones <strong>Android</strong> com o
-          Google Chrome (ou outro navegador baseado em Chromium).
+        <div className="alert alert-warn" role="alert">
+          <Smartphone size={20} className="alert-icon" />
+          <div>
+            Este atalho só funciona em telefones <strong>Android</strong> com o
+            Google Chrome (ou outro navegador baseado em Chromium).
+          </div>
         </div>
       )}
 
-      <button className="btn-main" onClick={() => abrir(PRINCIPAL)}>
-        {PRINCIPAL.label}
-      </button>
+      <section className="hero">
+        <div className="hero-glow" aria-hidden="true" />
+        <div className="hero-icon">
+          <Settings size={34} strokeWidth={1.8} />
+        </div>
+        <h2 className="hero-title">Definições do telefone</h2>
+        <p className="hero-text">
+          Toca no botão para abrir diretamente as configurações do sistema.
+        </p>
+        <button className="btn-main" onClick={() => abrir(PRINCIPAL)}>
+          <PRINCIPAL.Icon size={20} strokeWidth={2.2} />
+          <span>{PRINCIPAL.label}</span>
+          <ArrowRight size={18} strokeWidth={2.4} className="btn-arrow" />
+        </button>
+      </section>
 
-      <h2>Atalhos diretos</h2>
+      {falhou && (
+        <div className="alert alert-warn" role="alert">
+          <AlertTriangle size={20} className="alert-icon" />
+          <div>
+            <strong>Não foi possível abrir{alvo ? ` “${alvo}”` : ""}.</strong>
+            <p className="alert-text">
+              O teu telemóvel ou navegador bloqueou o atalho. Abre manualmente:
+            </p>
+            <ol className="steps">
+              <li>Sai do navegador (botão Início).</li>
+              <li>
+                Abre a app <strong>Configurações</strong> (ícone de engrenagem).
+              </li>
+              <li>Ou desliza do topo do ecrã e toca no ícone de engrenagem.</li>
+            </ol>
+          </div>
+        </div>
+      )}
+
+      <h3 className="section-title">Atalhos diretos</h3>
       <div className="grid">
-        {ATALHOS.map((a) => (
-          <button key={a.action} className="btn-sec" onClick={() => abrir(a)}>
-            {a.label}
+        {ATALHOS.map(({ label, action, Icon }) => (
+          <button
+            key={action}
+            className="tile"
+            onClick={() => abrir({ label, action, Icon })}
+          >
+            <span className="tile-icon">
+              <Icon size={20} strokeWidth={2.1} />
+            </span>
+            <span className="tile-label">{label}</span>
           </button>
         ))}
       </div>
 
-      {falhou && (
-        <div className="card warn">
-          <span className="tag">Não abriu</span>
-          <div>
-            O teu telemóvel ou navegador bloqueou o atalho
-            {alvo ? ` (“${alvo}”)` : ""}. Abre manualmente:
-          </div>
-          <ol>
-            <li>Sai do navegador (botão Início).</li>
-            <li>Abre a app <strong>Configurações</strong> (ícone de engrenagem).</li>
-            <li>Ou desliza do topo do ecrã e toca na engrenagem ⚙️.</li>
-          </ol>
-        </div>
-      )}
-
-      <div className="card info">
-        <span className="tag">Nota</span>
+      <div className="alert alert-info">
+        <Info size={20} className="alert-icon" />
         <div>
-          Por segurança, alguns Androids e navegadores (Samsung Internet, Firefox,
-          navegadores dentro de apps como Instagram ou WhatsApp) não permitem que
-          sites abram o sistema. Para melhor resultado, abre este site no{" "}
+          Por segurança, alguns Androids e navegadores (Samsung Internet,
+          Firefox e navegadores dentro de apps como Instagram ou WhatsApp) não
+          permitem que sites abram o sistema. Para melhor resultado, usa o{" "}
           <strong>Google Chrome</strong>.
         </div>
       </div>
