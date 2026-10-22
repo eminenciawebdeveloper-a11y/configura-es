@@ -1,0 +1,9 @@
+{
+  "name": "Abrir Configurações",
+  "short_name": "Configurações",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#0b5fff",
+  "icons": []
+}
