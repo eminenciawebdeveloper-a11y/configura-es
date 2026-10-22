@@ -15,6 +15,7 @@ import {
   Sun,
   Volume2,
   Wifi,
+  X,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,6 +46,7 @@ function montarIntent(action: string, fallbackUrl: string) {
 }
 
 export default function Home() {
+  const [mostrarInstrucoes, setMostrarInstrucoes] = useState(true);
   const [isAndroid, setIsAndroid] = useState<boolean | null>(null);
   const [falhou, setFalhou] = useState(false);
   const [alvo, setAlvo] = useState<string>("");
@@ -71,6 +73,23 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!mostrarInstrucoes) return;
+
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const fecharComEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMostrarInstrucoes(false);
+    };
+
+    window.addEventListener("keydown", fecharComEscape);
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+      window.removeEventListener("keydown", fecharComEscape);
+    };
+  }, [mostrarInstrucoes]);
+
   const abrir = (d: Destino) => {
     setFalhou(false);
     setAlvo(d.label);
@@ -81,7 +100,8 @@ export default function Home() {
   };
 
   return (
-    <main className="shell">
+    <>
+      <main className="shell" inert={mostrarInstrucoes}>
       <header className="header">
         <div className="badge">
           <Settings size={22} strokeWidth={2.2} />
@@ -162,6 +182,84 @@ export default function Home() {
           <strong>Google Chrome</strong>.
         </div>
       </div>
-    </main>
+      </main>
+      {mostrarInstrucoes && (
+        <div
+          className="modal-overlay"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setMostrarInstrucoes(false);
+            }
+          }}
+        >
+          <section
+            aria-labelledby="instructions-title"
+            aria-modal="true"
+            className="instructions-modal"
+            onKeyDown={(event) => {
+              if (event.key !== "Tab") return;
+
+              const botoes = event.currentTarget.querySelectorAll<HTMLButtonElement>(
+                "button:not([disabled])",
+              );
+              const primeiro = botoes[0];
+              const ultimo = botoes[botoes.length - 1];
+
+              if (event.shiftKey && document.activeElement === primeiro) {
+                event.preventDefault();
+                ultimo.focus();
+              } else if (!event.shiftKey && document.activeElement === ultimo) {
+                event.preventDefault();
+                primeiro.focus();
+              }
+            }}
+            role="dialog"
+          >
+            <button
+              aria-label="Fechar instruções"
+              className="modal-close"
+              onClick={() => setMostrarInstrucoes(false)}
+              type="button"
+            >
+              <X size={20} />
+            </button>
+            <div className="modal-icon">
+              <Info size={24} />
+            </div>
+            <h2 id="instructions-title">Antes de começar</h2>
+            <p className="modal-description">
+              Este site ajuda a abrir as definições do teu telefone Android.
+              Para usá-lo:
+            </p>
+            <ol className="modal-steps">
+              <li>
+                Abre este site num telefone Android, de preferência no Google
+                Chrome.
+              </li>
+              <li>
+                Toca em <strong>Abrir Configurações</strong> ou escolhe uma das
+                definições rápidas.
+              </li>
+              <li>
+                Se o navegador pedir confirmação, permite a abertura das
+                definições.
+              </li>
+            </ol>
+            <p className="modal-note">
+              Alguns navegadores bloqueiam esta ação. Se não funcionar, abre a
+              aplicação Configurações diretamente no teu telefone.
+            </p>
+            <button
+              autoFocus
+              className="modal-button"
+              onClick={() => setMostrarInstrucoes(false)}
+              type="button"
+            >
+              Entendi, continuar
+            </button>
+          </section>
+        </div>
+      )}
+    </>
   );
 }
